@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>GestaNut · Sistema · Diana Zavala</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<aside>
+  <div class="brand">
+    <div class="brand-mark">
+      <div class="brand-leaf"></div>
+      <div>
+        <div class="brand-name">Gesta<em>Nut</em></div>
+      </div>
+    </div>
+    <div class="brand-tag">Sistema Clínico · v3.0</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Principal</div>
+    <button class="nav-btn active" data-view="dashboard"><span class="nav-icon">🏠</span><span>Inicio</span></button>
+    <button class="nav-btn" data-view="pacientes"><span class="nav-icon">👩</span><span>Pacientes</span><span class="nav-badge">12</span></button>
+    <button class="nav-btn" data-view="agenda"><span class="nav-icon">📅</span><span>Agenda</span></button>
+    <button class="nav-btn" data-view="planes"><span class="nav-icon">🥗</span><span>Planes</span></button>
+    <div class="nav-section">Clínico</div>
+    <button class="nav-btn" data-view="calculadoras"><span class="nav-icon">🧮</span><span>Calculadoras</span></button>
+    <button class="nav-btn" data-view="consentimientos"><span class="nav-icon">📝</span><span>Consentimientos</span></button>
+    <div class="nav-section">Negocio</div>
+    <button class="nav-btn" data-view="finanzas"><span class="nav-icon">💰</span><span>Finanzas</span></button>
+    <button class="nav-btn" data-view="reportes"><span class="nav-icon">📊</span><span>Reportes</span></button>
+    <button class="nav-btn" data-view="config"><span class="nav-icon">⚙️</span><span>Configuración</span></button>
+  </nav>
+  <div class="user-block">
+    <div class="user-card">
+      <div class="u-avatar">DZ</div>
+      <div style="min-width:0;overflow:hidden">
+        <div class="u-name">Diana Zavala</div>
+        <div class="u-role">Nutrióloga · Cédula 15304166</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <div class="tb-left">
+      <div>
+        <div class="tb-greeting" id="tb-title">Buenos días, <em>Diana</em> 🌿</div>
+        <div class="tb-sub" id="tb-sub">Martes, 6 de mayo · 4 citas hoy · 12 pacientes activas</div>
+      </div>
+    </div>
+    <div class="tb-right">
+<button class="btn btn-outline btn-sm" onclick="openModal('appt-modal')">+ Cita</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('newpx-modal')">+ Paciente</button>
+    </div>
+  </header>
+  <div class="content" id="content-area"></div>
+</main>
+
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+<button class="fab" onclick="openModal('appt-modal')" title="Nueva cita">+</button>
+
+<!-- DATA (desde MySQL via PHP — ver api/data.php) -->
+<script src="api/data.php"></script>
+
+<!-- STATE & UTILS -->
+<script src="assets/js/state.js"></script>
+
+<!-- CONSULTA TABS -->
+<script src="assets/js/consulta/tab-resumen.js"></script>
+<script src="assets/js/consulta/tab-historia.js"></script>
+<script src="assets/js/consulta/tab-laboratorio.js"></script>
+<script src="assets/js/consulta/tab-recuento.js"></script>
+<script src="assets/js/consulta/tab-glucosa.js"></script>
+<script src="assets/js/consulta/tab-lactancia.js"></script>
+<script src="assets/js/consulta/tab-progreso.js"></script>
+<script src="assets/js/consulta/tab-plan.js"></script>
+<script src="assets/js/consulta/tab-mediciones.js"></script>
+<script src="assets/js/consulta/tab-notas.js"></script>
+<script src="assets/js/consulta/tab-embarazo.js"></script>
+<script src="assets/js/consulta/tab-galeria.js"></script>
+<script src="assets/js/consulta/consulta.js"></script>
+
+<!-- VIEWS -->
+<script src="assets/js/views/dashboard.js"></script>
+<script src="assets/js/views/pacientes.js"></script>
+<script src="assets/js/views/agenda.js"></script>
+<script src="assets/js/views/planes.js"></script>
+<script src="assets/js/views/calculadoras.js"></script>
+<script src="assets/js/views/consentimientos.js"></script>
+<script src="assets/js/views/finanzas.js"></script>
+<script src="assets/js/views/reportes.js"></script>
+<script src="assets/js/views/config.js"></script>
+
+<!-- MODALS, NAVIGATION, INIT -->
+<script src="assets/js/modals.js"></script>
+<script src="assets/js/nav.js"></script>
+<script src="assets/js/app.js"></script>
+
+</body>
+</html>
