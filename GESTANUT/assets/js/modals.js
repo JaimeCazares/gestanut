@@ -150,9 +150,9 @@ function injectModals() {
   </div>
 
   <!-- HISTORIA CLÍNICA -->
-  <div class="modal-overlay" id="historia-modal">
+  <div class="modal-overlay" id="historia-modal" onclick="historiaOverlayClick(event)">
     <div class="modal" style="max-width:680px">
-      <div class="modal-head"><div class="modal-title">Editar <em>historia clínica</em></div><button class="modal-close" onclick="closeModal('historia-modal')">✕</button></div>
+      <div class="modal-head"><div class="modal-title">Editar <em>historia clínica</em></div><button class="modal-close" onclick="cerrarHistoriaConFirmacion()">✕</button></div>
       <div class="modal-body">
         <div class="field"><label class="field-label">Motivo de consulta</label><input id="hc-motivo" class="input" placeholder="Motivo principal"></div>
         <div class="field-row">
@@ -174,12 +174,20 @@ function injectModals() {
         <div class="field-row">
           <div class="field"><label class="field-label">Estado civil</label><input id="hc-ecivil" class="input" placeholder="Estado civil"></div>
           <div class="field"><label class="field-label">Tabaquismo</label><select id="hc-tab" class="select"><option value="No">No</option><option value="exfumador">Exfumador/a</option><option value="actual">Fumador/a actual</option></select></div>
-          <div class="field"><label class="field-label">Alcohol</label><input id="hc-alc" class="input" placeholder="Frecuencia"></div>
+          <div class="field"><label class="field-label">Alcohol</label>
+            <select id="hc-alc" class="select" onchange="hcAlcoholChange()">
+              <option value="No">No</option>
+              <option value="Solo fin de semana">Solo fin de semana</option>
+              <option value="Moderado">Moderado</option>
+              <option value="Otro">Otro...</option>
+            </select>
+            <input id="hc-alc-otro" class="input" style="display:none;margin-top:6px" placeholder="Especifica cómo...">
+          </div>
         </div>
         <div class="field"><label class="field-label">Biografía / Notas generales</label><textarea id="hc-bio" class="textarea" style="min-height:70px" placeholder="Notas sobre la paciente..."></textarea></div>
       </div>
       <div class="modal-foot">
-        <button class="btn btn-outline" onclick="closeModal('historia-modal')">Cancelar</button>
+        <button class="btn btn-outline" onclick="cerrarHistoriaConFirmacion()">Cancelar</button>
         <button id="hc-submit" class="btn btn-primary" onclick="guardarHistoria()">Guardar historia</button>
       </div>
     </div>
@@ -350,9 +358,16 @@ function openHistoriaModal() {
   const h = currentPatient?.historia || {};
   const fields = { 'hc-motivo':h.motivo,'hc-ant':h.antecedentes,'hc-aleg':h.alergias,'hc-into':h.intolerancias,
     'hc-med':h.medicamentos,'hc-cir':h.cirugias,'hc-fam':h.patFam,'hc-act':h.actFisica,
-    'hc-ocu':h.ocupacion,'hc-ecivil':h.estadoCivil,'hc-alc':h.alcohol,'hc-bio':h.bio };
+    'hc-ocu':h.ocupacion,'hc-ecivil':h.estadoCivil,'hc-bio':h.bio };
   Object.entries(fields).forEach(([id, v]) => { const el = $('#' + id); if (el) el.value = v || ''; });
   const tab = $('#hc-tab'); if (tab) tab.value = h.tabaco || 'No';
+  const knownAlc = ['No','Solo fin de semana','Moderado'];
+  const alcVal = h.alcohol || 'No';
+  const alcSel = $('#hc-alc'); const alcInp = $('#hc-alc-otro');
+  if (alcSel) {
+    if (knownAlc.includes(alcVal)) { alcSel.value = alcVal; if (alcInp) { alcInp.style.display = 'none'; alcInp.value = ''; } }
+    else { alcSel.value = 'Otro'; if (alcInp) { alcInp.style.display = 'block'; alcInp.value = alcVal !== 'No' ? alcVal : ''; } }
+  }
   openModal('historia-modal');
 }
 
@@ -370,7 +385,7 @@ async function guardarHistoria() {
         intolerancias: get('hc-into'), medicamentos: get('hc-med'), cirugias: get('hc-cir'),
         patFam: get('hc-fam'), actFisica: get('hc-act'), ocupacion: get('hc-ocu'),
         estadoCivil: get('hc-ecivil'), tabaco: ($('#hc-tab')||{}).value || 'No',
-        alcohol: get('hc-alc'), bio: get('hc-bio'),
+        alcohol: _getAlcohol(), bio: get('hc-bio'),
       }),
     });
     if (!res.ok) throw new Error();
@@ -380,7 +395,7 @@ async function guardarHistoria() {
       intolerancias: get('hc-into'), medicamentos: get('hc-med'), cirugias: get('hc-cir'),
       patFam: get('hc-fam'), actFisica: get('hc-act'), ocupacion: get('hc-ocu'),
       estadoCivil: get('hc-ecivil'), tabaco: ($('#hc-tab')||{}).value || 'No',
-      alcohol: get('hc-alc'), bio: get('hc-bio'),
+      alcohol: _getAlcohol(), bio: get('hc-bio'),
     };
     closeModal('historia-modal');
     toast('Historia clínica guardada ✓');
@@ -390,6 +405,39 @@ async function guardarHistoria() {
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Guardar historia'; }
   }
+}
+
+function _getAlcohol() {
+  const sel = $('#hc-alc'); const inp = $('#hc-alc-otro');
+  if (!sel) return 'No';
+  return sel.value === 'Otro' ? (inp?.value.trim() || 'Otro') : sel.value;
+}
+
+function hcAlcoholChange() {
+  const sel = $('#hc-alc'); const inp = $('#hc-alc-otro');
+  if (!sel || !inp) return;
+  inp.style.display = sel.value === 'Otro' ? 'block' : 'none';
+  if (sel.value !== 'Otro') inp.value = '';
+  if (sel.value === 'Otro') setTimeout(() => inp.focus(), 50);
+}
+
+function historiaOverlayClick(e) {
+  if (e.target !== e.currentTarget) return;
+  cerrarHistoriaConFirmacion();
+}
+
+function cerrarHistoriaConFirmacion() {
+  const ids = ['hc-motivo','hc-ant','hc-aleg','hc-into','hc-med','hc-cir','hc-fam','hc-act','hc-ocu','hc-ecivil','hc-bio'];
+  const alcOtro = $('#hc-alc-otro');
+  const hasDatos = ids.some(id => { const el = $('#'+id); return el && el.value.trim(); })
+                || (alcOtro && alcOtro.style.display !== 'none' && alcOtro.value.trim());
+  if (!hasDatos) { closeModal('historia-modal'); return; }
+  const modal = document.querySelector('#historia-modal .modal');
+  if (modal) { modal.classList.remove('hc-shake'); void modal.offsetWidth; modal.classList.add('hc-shake'); setTimeout(() => modal.classList.remove('hc-shake'), 600); }
+  ids.forEach(id => {
+    const el = $('#'+id);
+    if (el && el.value.trim()) { el.classList.add('hc-field-warn'); setTimeout(() => el.classList.remove('hc-field-warn'), 800); }
+  });
 }
 
 // ─── Mediciones corporales ─────────────────────────────
@@ -573,10 +621,15 @@ async function guardarProgreso() {
 }
 
 document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open');
+  if (!e.target.classList.contains('modal-overlay')) return;
+  if (e.target.id === 'historia-modal') { cerrarHistoriaConFirmacion(); return; }
+  e.target.classList.remove('open');
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') $$('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  if (e.key !== 'Escape') return;
+  const historiaAbierta = $('#historia-modal')?.classList.contains('open');
+  if (historiaAbierta) { cerrarHistoriaConFirmacion(); return; }
+  $$('.modal-overlay.open').forEach(m => m.classList.remove('open'));
 });
 
 function quickWA(id) {

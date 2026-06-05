@@ -2,20 +2,20 @@
 // TAB · Resumen del expediente
 // ══════════════════════════════════════════════════════
 function tabResumen(p) {
-  const imc  = calcIMC(p.weight, p.height);
-  const tmb  = calcTMB(p.weight, p.height, p.age);
-  const agua = (calcWater(p.weight, p.semGestacion || 0) / 1000).toFixed(1);
+  const imc  = p.weight ? calcIMC(p.weight, p.height) : '—';
+  const tmb  = p.weight ? calcTMB(p.weight, p.height, p.age) : '—';
+  const agua = p.weight ? (calcWater(p.weight, p.semGestacion || 0) / 1000).toFixed(1) : '—';
   return `<div class="g-21">
     <div>
       <div class="panel mb-sm">
         <div class="panel-head"><div class="panel-title"><span class="pt-icon">📋</span>Datos del expediente</div></div>
         <div class="panel-body">
-          <div style="background:var(--sage-lll);border-left:3px solid var(--sage);padding:12px 16px;border-radius:0 var(--rs) var(--rs) 0;margin-bottom:16px;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--forest);line-height:1.6">"${p.bio}"</div>
+          ${(p.bio || p.goal) ? `<div style="background:var(--sage-lll);border-left:3px solid var(--sage);padding:12px 16px;border-radius:0 var(--rs) var(--rs) 0;margin-bottom:16px;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--forest);line-height:1.6">"${p.bio || p.goal}"</div>` : ''}
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
             ${[
-              ['Peso', `${p.weight} kg`], ['Altura', `${p.height} m`],
-              ['IMC', imc], ['TMB', `${tmb} kcal`],
-              ['Agua/día', `${agua} L`], ['Última visita', p.ultimaVisita]
+              ['Peso', p.weight ? `${p.weight} kg` : '—'], ['Altura', `${p.height} m`],
+              ['IMC', imc], ['TMB', tmb !== '—' ? `${tmb} kcal` : '—'],
+              ['Agua/día', agua !== '—' ? `${agua} L` : '—'], ['Última visita', p.ultimaVisita]
             ].map(([l, v]) => `<div style="background:var(--cream);padding:11px 12px;border-radius:var(--rs)"><div style="font-size:10px;color:var(--text-m);text-transform:uppercase;letter-spacing:.5px">${l}</div><div style="font-size:14px;font-weight:500;color:var(--forest);margin-top:2px">${v}</div></div>`).join('')}
           </div>
         </div>
@@ -26,7 +26,7 @@ function tabResumen(p) {
           <div style="text-align:center;padding:16px 8px;background:var(--sage-ll);border-radius:var(--rs)">
             <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--forest)">${imc}</div>
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-m);margin-top:3px">IMC</div>
-            <div style="font-size:11px;margin-top:4px;color:${imcCat(imc).c};font-weight:500">${imcCat(imc).label}</div>
+            <div style="font-size:11px;margin-top:4px;color:${imc !== '—' ? imcCat(imc).c : 'var(--text-m)'};font-weight:500">${imc !== '—' ? imcCat(imc).label : 'Sin dato'}</div>
           </div>
           <div style="text-align:center;padding:16px 8px;background:var(--terra-l);border-radius:var(--rs)">
             <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--terra-d)">${tmb}</div>
@@ -34,7 +34,7 @@ function tabResumen(p) {
             <div style="font-size:11px;margin-top:4px;color:var(--text-m)">Mifflin-St Jeor</div>
           </div>
           <div style="text-align:center;padding:16px 8px;background:var(--info-l);border-radius:var(--rs)">
-            <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--info)">${agua}L</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--info)">${agua !== '—' ? agua + 'L' : '—'}</div>
             <div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-m);margin-top:3px">Agua/día</div>
             <div style="font-size:11px;margin-top:4px;color:var(--text-m)">${p.semGestacion ? '+extra por embarazo' : '35 ml/kg'}</div>
           </div>

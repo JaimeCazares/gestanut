@@ -9,8 +9,9 @@ async function openPatient(id) {
     const res = await fetch(`api/paciente.php?id=${id}`);
     if (!res.ok) return;
     const detail = await res.json();
+    const savedWeight = currentPatient.weight;
     Object.assign(currentPatient, detail);
-    if (detail.weight) currentPatient.weight = detail.weight;
+    if (currentPatient.weight == null) currentPatient.weight = savedWeight;
     renderConsulta();
   } catch (e) {
     console.warn('No se pudo cargar detalle desde BD', e);
@@ -50,7 +51,7 @@ function renderConsulta() {
     { k: 'galeria', l: '📸 Galería' },
   ];
 
-  const imc = calcIMC(p.weight, p.height);
+  const imc = p.weight ? calcIMC(p.weight, p.height) : '—';
   const cat = imcCat(imc);
 
   c.innerHTML = `<div class="view active">
@@ -78,7 +79,7 @@ function renderConsulta() {
           </div>
         </div>
         <div style="display:flex;gap:20px;text-align:center">
-          <div><div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;line-height:1">${p.weight}</div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(250,246,239,.5);margin-top:3px">kg</div></div>
+          <div><div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;line-height:1">${p.weight || '—'}</div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(250,246,239,.5);margin-top:3px">kg</div></div>
           <div><div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;line-height:1">${imc}</div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(250,246,239,.5);margin-top:3px">IMC</div></div>
           ${p.semGestacion ? `<div><div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;line-height:1">${p.semGestacion}</div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(250,246,239,.5);margin-top:3px">sem</div></div>` : ''}
           ${p.dg ? `<div><div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:500;line-height:1;color:var(--gold-l)">DG</div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(250,246,239,.5);margin-top:3px">Diab. Gest.</div></div>` : ''}

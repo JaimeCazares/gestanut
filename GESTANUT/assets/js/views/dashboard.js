@@ -78,6 +78,7 @@ VIEWS.dashboard = () => `<div class="view active">
 </div>`;
 
 function initDash() {
+  actualizarContadores();
   makeChart('#dash-chart', {
     type: 'line',
     data: {

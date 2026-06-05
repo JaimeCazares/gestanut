@@ -18,7 +18,7 @@ function showView(name) {
   const fn = VIEWS[name];
   if (fn) c.innerHTML = fn();
   const ti = {
-    dashboard:      ['Buenos días, <em>Diana</em> 🌿',           'Martes, 6 de mayo · 4 citas hoy · 12 pacientes activas'],
+    dashboard:      ['Buenos días, <em>Diana</em> 🌿',           ''],
     pacientes:      ['Mis <em>Pacientes</em>',                   '12 pacientes activas · Expedientes digitales completos'],
     agenda:         ['<em>Agenda</em>',                          'Semana del 5 al 10 de mayo · Sincronizado con Google Calendar'],
     planes:         ['Planes <em>Nutricionales</em>',            'Crea, edita y envía planes personalizados'],

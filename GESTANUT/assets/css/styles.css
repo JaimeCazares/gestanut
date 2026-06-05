@@ -179,6 +179,9 @@ main::before{content:'';position:absolute;top:50px;right:50px;width:180px;height
 .modal-foot{padding:16px 26px;border-top:1px solid rgba(107,158,120,.1);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;background:var(--sage-lll)}
 .modal-close{width:32px;height:32px;border-radius:50%;background:var(--cream-d);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-m);transition:all .2s}
 .modal-close:hover{background:var(--terra-l);color:var(--terra)}
+@keyframes hcShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-8px)}30%{transform:translateX(7px)}45%{transform:translateX(-6px)}60%{transform:translateX(5px)}75%{transform:translateX(-3px)}90%{transform:translateX(2px)}}
+.hc-shake{animation:hcShake .55s ease !important}
+.hc-field-warn{outline:2px solid #e05a5a !important;background:rgba(224,90,90,.07) !important;transition:outline .1s,background .1s}
 
 /* ── TOAST ── */
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--forest);color:var(--cream);padding:12px 24px;border-radius:50px;box-shadow:0 8px 32px rgba(26,51,40,.3);font-size:13px;font-weight:500;z-index:300;display:flex;align-items:center;gap:10px;animation:toastIn .35s ease,toastOut .35s ease 2.5s forwards}
