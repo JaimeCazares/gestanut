@@ -63,7 +63,8 @@ function renderConsulta() {
     ...(p.semGestacion ? [{ k: 'embarazo',  l: '🤰 Embarazo' }]  : []),
     ...(p.lactancia    ? [{ k: 'lactancia', l: '🤱 Lactancia' }] : []),
     ...(p.dg           ? [{ k: 'glucosa',   l: '📊 Glucosa' }]   : []),
-    { k: 'galeria', l: '📸 Galería' },
+    { k: 'galeria',     l: '📸 Galería' },
+    { k: 'documentos',  l: '📁 Documentos' },
   ];
 
   const imc = p.weight ? calcIMC(p.weight, p.height) : '—';
@@ -132,6 +133,7 @@ function renderConsultaTab() {
     lactancia:   tabLactancia,
     glucosa:     tabGlucosa,
     galeria:     tabGaleria,
+    documentos:  tabDocumentos,
   };
   const fn = fns[consultaTab];
   c.innerHTML = fn ? fn(p) : '';
@@ -141,7 +143,8 @@ function renderConsultaTab() {
     if (consultaTab === 'progreso') renderEvolChart();
     if (consultaTab === 'glucosa')  renderGlucChart();
     if (consultaTab === 'embarazo') renderGanChart();
-    if (consultaTab === 'galeria')  renderGaleria();
+    if (consultaTab === 'galeria')      renderGaleria();
+    if (consultaTab === 'documentos')   renderDocumentos();
   }, 60);
 }
 

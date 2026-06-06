@@ -367,7 +367,23 @@ CREATE TABLE galeria_pacientes (
 );
 
 -- ───────────────────────────────────────────────────────────────────
--- 22. ALIMENTOS  (biblioteca global de alimentos con macros)
+-- 22. DOCUMENTOS / ARCHIVOS MÉDICOS DEL PACIENTE
+-- ───────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS documentos_pacientes (
+  id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  paciente_id         INT UNSIGNED NOT NULL,
+  nombre              VARCHAR(255) NOT NULL,
+  tipo_archivo        ENUM('imagen','pdf') NOT NULL DEFAULT 'imagen',
+  archivo_url         VARCHAR(255) NOT NULL,
+  descripcion         TEXT,
+  fecha               DATE,
+  created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
+  INDEX idx_paciente (paciente_id)
+);
+
+-- ───────────────────────────────────────────────────────────────────
+-- 23. ALIMENTOS  (biblioteca global de alimentos con macros)
 -- ───────────────────────────────────────────────────────────────────
 CREATE TABLE alimentos (
   id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
