@@ -192,6 +192,17 @@ $glucosaData = array_map(function($g) use ($meses) {
     ];
 }, $stmt->fetchAll());
 
+// ─── Suplementación ───────────────────────────────────
+$stmt = $pdo->prepare('SELECT id, nombre, dosis, frecuencia, razon FROM suplementacion WHERE paciente_id = ? AND activo = 1 ORDER BY id ASC');
+$stmt->execute([$id]);
+$suplementacion = array_map(fn($r) => [
+    'id'         => (int)$r['id'],
+    'nombre'     => $r['nombre'],
+    'dosis'      => $r['dosis']      ?? '',
+    'frecuencia' => $r['frecuencia'] ?? '',
+    'razon'      => $r['razon']      ?? '',
+], $stmt->fetchAll());
+
 // ─── Último peso ───────────────────────────────────────
 $lastWeight = $history ? end($history)['weight'] : null;
 
@@ -210,5 +221,6 @@ echo json_encode([
     'lactancia'      => $hasLactancia,
     'lactanciaData'  => $lactanciaData,
     'prePregWeight'  => $prePregWeight,
+    'suplementacion' => $suplementacion,
     'weight'         => $lastWeight,
 ], JSON_UNESCAPED_UNICODE);

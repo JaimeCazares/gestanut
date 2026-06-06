@@ -20,10 +20,31 @@ const GCAL_COLOR_MAP = {
   '11': 'terra', // Tomato
 };
 
+function gcalHasSetup() {
+  return !!localStorage.getItem(GCAL_CLIENT_ID_KEY);
+}
+
 function gcalIsConnected() {
   const token  = localStorage.getItem(GCAL_TOKEN_KEY);
   const expiry = localStorage.getItem(GCAL_EXPIRY_KEY);
   return !!(token && expiry && Date.now() < parseInt(expiry));
+}
+
+function gcalSilentReconnect() {
+  const clientId = localStorage.getItem(GCAL_CLIENT_ID_KEY);
+  if (!clientId || !window.google?.accounts?.oauth2) return;
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: 'https://www.googleapis.com/auth/calendar',
+    prompt: '',
+    callback: (resp) => {
+      if (resp.error) return;
+      localStorage.setItem(GCAL_TOKEN_KEY, resp.access_token);
+      localStorage.setItem(GCAL_EXPIRY_KEY, String(Date.now() + resp.expires_in * 1000));
+      if (currentView === 'agenda') loadAgendaGcalEvents();
+    },
+  });
+  client.requestAccessToken({ prompt: '' });
 }
 
 function gcalConnect() {
@@ -42,7 +63,7 @@ function _gcalRequestToken(clientId) {
   }
   const client = google.accounts.oauth2.initTokenClient({
     client_id: clientId,
-    scope: 'https://www.googleapis.com/auth/calendar.readonly',
+    scope: 'https://www.googleapis.com/auth/calendar',
     callback: (resp) => {
       if (resp.error) {
         toast('⚠️ Error de autorización: ' + resp.error);
@@ -68,6 +89,7 @@ function gcalDisconnect() {
   }
   localStorage.removeItem(GCAL_TOKEN_KEY);
   localStorage.removeItem(GCAL_EXPIRY_KEY);
+  localStorage.removeItem(GCAL_CLIENT_ID_KEY);
   toast('Google Calendar desconectado');
   if (currentView === 'agenda') showView('agenda');
   if (currentView === 'config') showView('config');
@@ -105,14 +127,102 @@ async function gcalFetchWeekEvents(startDate, endDate) {
   }
 }
 
-async function loadAgendaGcalEvents() {
+async function gcalDeleteEventsByPatientName(nombre) {
   if (!gcalIsConnected()) return;
-  const days = getWeekDates(agendaWeekOffset);
-  const start = new Date(days[0]);
-  const end = new Date(days[days.length - 1]);
-  end.setDate(end.getDate() + 1);
+  const token = localStorage.getItem(GCAL_TOKEN_KEY);
+  try {
+    const past   = new Date(); past.setFullYear(past.getFullYear() - 1);
+    const future = new Date(); future.setFullYear(future.getFullYear() + 2);
+    const params = new URLSearchParams({
+      timeMin: past.toISOString(),
+      timeMax: future.toISOString(),
+      singleEvents: 'true',
+      maxResults: '250',
+      q: nombre,
+    });
+    const res = await fetch(
+      'https://www.googleapis.com/calendar/v3/calendars/primary/events?' + params,
+      { headers: { Authorization: 'Bearer ' + token } }
+    );
+    if (!res.ok) return;
+    const data   = await res.json();
+    const events = (data.items || []).filter(ev => ev.summary && ev.summary.startsWith(nombre));
+    for (const ev of events) {
+      try {
+        await fetch(
+          'https://www.googleapis.com/calendar/v3/calendars/primary/events/' + encodeURIComponent(ev.id),
+          { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } }
+        );
+      } catch (e) {}
+    }
+  } catch (e) {
+    console.error('gcalDeleteEventsByPatientName:', e);
+  }
+}
 
-  const events = await gcalFetchWeekEvents(start, end);
+async function gcalDeleteEvent(eventId) {
+  if (!confirm('¿Eliminar este evento de Google Calendar?')) return;
+  const token = localStorage.getItem(GCAL_TOKEN_KEY);
+  if (!token) { toast('⚠️ Sesión expirada. Reconecta Google Calendar.'); return; }
+  try {
+    const res = await fetch(
+      'https://www.googleapis.com/calendar/v3/calendars/primary/events/' + encodeURIComponent(eventId),
+      { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } }
+    );
+    if (res.status === 204 || res.ok) {
+      toast('Evento eliminado ✓');
+      loadAgendaGcalEvents();
+    } else if (res.status === 401) {
+      localStorage.removeItem(GCAL_TOKEN_KEY);
+      localStorage.removeItem(GCAL_EXPIRY_KEY);
+      toast('⚠️ Sesión expirada. Reconecta Google Calendar.');
+    } else {
+      toast('⚠️ No se pudo eliminar el evento.');
+    }
+  } catch (e) {
+    toast('⚠️ Error al eliminar el evento.');
+  }
+}
+
+async function loadAgendaGcalEvents() {
+  if (!gcalIsConnected()) {
+    if (gcalHasSetup()) gcalSilentReconnect();
+    return;
+  }
+
+  // Determine date range and column map based on active view
+  const useChips = agendaViewMode === 'month' || agendaViewMode === 'quarter';
+  let rangeStart, rangeEnd, colMap = {};
+
+  if (agendaViewMode === 'day') {
+    const d   = getDayDate(agendaOffset);
+    rangeStart = new Date(d);
+    rangeEnd   = new Date(d); rangeEnd.setDate(rangeEnd.getDate() + 1);
+    colMap[toDateStr(d)] = 0;
+
+  } else if (agendaViewMode === 'week') {
+    const days = getWeekDates(agendaOffset);
+    rangeStart = new Date(days[0]);
+    rangeEnd   = new Date(days[6]); rangeEnd.setDate(rangeEnd.getDate() + 1);
+    days.forEach((d, i) => { colMap[toDateStr(d)] = i; });
+
+  } else if (agendaViewMode === 'month') {
+    const ym    = getOffsetMonth(agendaOffset);
+    const cells = getMonthGrid(ym.year, ym.month);
+    rangeStart  = new Date(cells[0].date);
+    rangeEnd    = new Date(cells[cells.length - 1].date); rangeEnd.setDate(rangeEnd.getDate() + 1);
+
+  } else if (agendaViewMode === 'quarter') {
+    const base   = agendaOffset * 3;
+    const m0     = getOffsetMonth(base);
+    const m2     = getOffsetMonth(base + 2);
+    const cells0 = getMonthGrid(m0.year, m0.month);
+    const cells2 = getMonthGrid(m2.year, m2.month);
+    rangeStart   = new Date(cells0[0].date);
+    rangeEnd     = new Date(cells2[cells2.length - 1].date); rangeEnd.setDate(rangeEnd.getDate() + 1);
+  }
+
+  const events = await gcalFetchWeekEvents(rangeStart, rangeEnd);
 
   const colStyle = {
     sage:  { bg: 'var(--sage-ll)',  border: 'var(--sage)'  },
@@ -122,44 +232,78 @@ async function loadAgendaGcalEvents() {
     info:  { bg: 'var(--info-l)',  border: 'var(--info)'  },
   };
 
-  const dayIndex = {};
-  days.forEach((d, i) => { dayIndex[d.toDateString()] = i; });
-
-  // Limpiar eventos previos de GCal
   $$('.gcal-event').forEach(el => el.remove());
 
   for (const ev of events) {
-    const dtStart = ev.start?.dateTime;
-    if (!dtStart) continue; // eventos de día completo se ignoran
+    const dtStart = ev.start?.dateTime || (ev.start?.date ? ev.start.date + 'T00:00:00' : null);
+    if (!dtStart) continue;
 
-    const evStart  = new Date(dtStart);
-    const evEnd    = ev.end?.dateTime ? new Date(ev.end.dateTime) : new Date(evStart.getTime() + 3600000);
-    const colIdx   = dayIndex[evStart.toDateString()];
-    if (colIdx === undefined) continue;
+    const evStart = new Date(dtStart);
+    const ds      = toDateStr(evStart);
 
-    const col = $(`#agenda-col-${colIdx}`);
-    if (!col) continue;
+    if (useChips) {
+      const cell = document.getElementById('agenda-day-' + ds);
+      if (!cell) continue;
+      const container = cell.querySelector('.agenda-chips');
+      if (!container) continue;
+      const chip = document.createElement('div');
+      chip.className = 'gcal-event';
+      chip.style.cssText = 'font-size:10px;background:var(--sage-ll);border-left:2px solid var(--sage);border-radius:3px;padding:2px 4px 2px 5px;display:flex;align-items:center;gap:4px;overflow:hidden;cursor:pointer;min-width:0;';
+      chip.title = ev.summary || 'Sin título';
 
-    const startH  = evStart.getHours() + evStart.getMinutes() / 60;
-    const endH    = evEnd.getHours()   + evEnd.getMinutes()   / 60;
-    const topPx   = Math.round((startH - 8) * 55);
-    const heightPx = Math.max(22, Math.round((endH - startH) * 55) - 4);
+      const label = document.createElement('span');
+      label.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;';
+      label.textContent = (ev.start?.dateTime ? evStart.getHours() + ':' + String(evStart.getMinutes()).padStart(2,'0') + ' ' : '') + (ev.summary || 'Sin título');
 
-    if (topPx < 0 || topPx > 550) continue;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = '×';
+      btn.title = 'Eliminar de Google Calendar';
+      btn.style.cssText = 'flex-shrink:0;background:none;border:none;cursor:pointer;color:#c0392b;font-size:14px;font-weight:bold;line-height:1;padding:0 1px;display:inline-block;';
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        gcalDeleteEvent(ev.id);
+      });
 
-    const colorKey = GCAL_COLOR_MAP[ev.colorId] || 'sage';
-    const cs       = colStyle[colorKey];
-    const timeStr  = `${evStart.getHours()}:${String(evStart.getMinutes()).padStart(2, '0')}`;
+      chip.appendChild(label);
+      chip.appendChild(btn);
+      container.appendChild(chip);
 
-    const div = document.createElement('div');
-    div.className = 'gcal-event';
-    div.style.cssText = `position:absolute;left:3px;right:3px;top:${topPx}px;height:${heightPx}px;background:${cs.bg};border-left:3px solid ${cs.border};border-radius:6px;padding:6px 8px;cursor:pointer;transition:transform .2s;overflow:hidden`;
-    div.innerHTML = `
-      <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ev.summary || 'Sin título'}</div>
-      <div style="font-size:10px;opacity:.75">${timeStr}</div>`;
-    div.addEventListener('mouseover', () => { div.style.transform = 'scale(1.02)'; });
-    div.addEventListener('mouseout',  () => { div.style.transform = ''; });
-    col.appendChild(div);
+    } else {
+      const colIdx = colMap[ds];
+      if (colIdx === undefined) continue;
+      const col = document.getElementById('agenda-col-' + colIdx);
+      if (!col) continue;
+
+      const evEnd    = ev.end?.dateTime ? new Date(ev.end.dateTime) : new Date(evStart.getTime() + 3600000);
+      const startH   = evStart.getHours() + evStart.getMinutes() / 60;
+      const endH     = evEnd.getHours()   + evEnd.getMinutes()   / 60;
+      const topPx    = Math.round((startH - 8) * 55);
+      const heightPx = Math.max(22, Math.round((endH - startH) * 55) - 4);
+
+      if (topPx < 0 || topPx > 550) continue;
+
+      const colorKey = GCAL_COLOR_MAP[ev.colorId] || 'sage';
+      const cs       = colStyle[colorKey];
+      const timeStr  = `${evStart.getHours()}:${String(evStart.getMinutes()).padStart(2, '0')}`;
+
+      const div = document.createElement('div');
+      div.className = 'gcal-event';
+      div.style.cssText = `position:absolute;left:3px;right:3px;top:${topPx}px;height:${heightPx}px;background:${cs.bg};border-left:3px solid ${cs.border};border-radius:6px;padding:6px 8px;cursor:pointer;transition:transform .2s;overflow:hidden`;
+      div.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:2px;">' +
+          '<div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">' + (ev.summary || 'Sin título') + '</div>' +
+          '<button class="gcal-del-btn" style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:14px;font-weight:bold;line-height:1;padding:0 1px;flex-shrink:0;" title="Eliminar de Google Calendar">×</button>' +
+        '</div>' +
+        '<div style="font-size:10px;opacity:.75;">' + timeStr + '</div>';
+      div.querySelector('.gcal-del-btn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        gcalDeleteEvent(ev.id);
+      });
+      div.addEventListener('mouseover', () => { div.style.transform = 'scale(1.02)'; });
+      div.addEventListener('mouseout',  () => { div.style.transform = ''; });
+      col.appendChild(div);
+    }
   }
 }
 
@@ -213,4 +357,39 @@ function _gcalSaveClientId() {
   localStorage.setItem(GCAL_CLIENT_ID_KEY, id);
   closeModal('gcal-setup-modal');
   _gcalRequestToken(id);
+}
+
+async function gcalCreateEvent(cita) {
+  if (!gcalIsConnected()) return;
+  const token = localStorage.getItem(GCAL_TOKEN_KEY);
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  const [h, m] = cita.hora.split(':').map(Number);
+  const pad = n => String(n).padStart(2, '0');
+  const startStr = `${cita.fecha}T${pad(h)}:${pad(m)}:00`;
+  const endDate = new Date(`${cita.fecha}T${pad(h)}:${pad(m)}:00`);
+  endDate.setMinutes(endDate.getMinutes() + 60);
+  const endStr = `${cita.fecha}T${pad(endDate.getHours())}:${pad(endDate.getMinutes())}:00`;
+
+  const event = {
+    summary: `${cita.paciente_nombre} · ${cita.tipo_consulta}`,
+    description: cita.notas || '',
+    start: { dateTime: startStr, timeZone: tz },
+    end:   { dateTime: endStr,   timeZone: tz },
+    colorId: '11',
+  };
+
+  try {
+    const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(event),
+    });
+    if (res.status === 401) {
+      localStorage.removeItem(GCAL_TOKEN_KEY);
+      localStorage.removeItem(GCAL_EXPIRY_KEY);
+    }
+  } catch (e) {
+    console.error('gcalCreateEvent:', e);
+  }
 }

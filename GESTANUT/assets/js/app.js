@@ -2,6 +2,9 @@
 // APP · Initialisation
 // ══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
+  // Auto-migración: garantiza que todas las columnas existan
+  try { await fetch('api/migrate_plan.php'); } catch (e) {}
+
   // Cargar pacientes y finanzas desde la BD en paralelo
   try {
     const [resP, resF] = await Promise.all([
@@ -19,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   actualizarContadores();
 
   const h = new Date().getHours();
-  const g = h < 12 ? 'Buenos días' : 'Buenas tardes';
+  const g = h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
   $('#tb-title').innerHTML = `${g}, <em>Diana</em> 🌿`;
 });
 

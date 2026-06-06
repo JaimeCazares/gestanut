@@ -8,7 +8,7 @@ let pxFilter       = 'todos';
 let pxSearch       = '';
 let chartInstances = {};
 let currentReceipt = null;
-let agendaWeekOffset = 0;
+let agendaWeekOffset = 0; // legacy — usado por google-calendar.js
 
 // ── VIEWS namespace (se puebla en views/*.js) ──────────
 const VIEWS = {};
@@ -27,11 +27,12 @@ const imcCat      = imc => {
   if (imc < 30)   return { label: 'Sobrepeso',    c: 'var(--gold)' };
   return           { label: 'Obesidad',   c: 'var(--terra)' };
 };
-const calcTMB     = (w, h, age) => Math.round(10 * w + 6.25 * (h * 100) - 5 * age - 161);
-const calcWater   = (w, sem = 0) => {
+const calcTMB     = (w, h, age, sexo = 'femenino') => Math.round(10 * w + 6.25 * (h * 100) - 5 * age + (sexo === 'masculino' ? 5 : -161));
+const calcWater   = (w, sem = 0, act = 0) => {
   let ml = w * 35;
   if (sem >= 27) ml += 500;
   else if (sem >= 13) ml += 300;
+  ml += act; // extra ml por actividad física
   return ml;
 };
 const calcGanancia = imc => {

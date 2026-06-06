@@ -6,12 +6,27 @@ async function openPatient(id) {
   consultaTab = 'resumen';
   renderConsulta();
   try {
-    const res = await fetch(`api/paciente.php?id=${id}`);
-    if (!res.ok) return;
-    const detail = await res.json();
-    const savedWeight = currentPatient.weight;
-    Object.assign(currentPatient, detail);
-    if (currentPatient.weight == null) currentPatient.weight = savedWeight;
+    const [detailRes, citaRes] = await Promise.all([
+      fetch(`api/paciente.php?id=${id}`),
+      fetch(`api/citas.php?paciente_id=${id}`)
+    ]);
+    if (detailRes.ok) {
+      const detail = await detailRes.json();
+      const savedWeight = currentPatient.weight;
+      Object.assign(currentPatient, detail);
+      if (currentPatient.weight == null) currentPatient.weight = savedWeight;
+    }
+    if (citaRes.ok) {
+      const cita = await citaRes.json();
+      if (cita && cita.fecha) {
+        const d = new Date(cita.fecha + 'T00:00:00');
+        const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+        const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const [hh, mm] = cita.hora.split(':');
+        currentPatient.proxima     = `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]} · ${parseInt(hh)}:${mm}`;
+        currentPatient.proximaCita = cita;
+      }
+    }
     renderConsulta();
   } catch (e) {
     console.warn('No se pudo cargar detalle desde BD', e);
@@ -60,12 +75,18 @@ function renderConsulta() {
       <div style="position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:rgba(107,158,120,.15)"></div>
       <div style="position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap">
         <div style="display:flex;align-items:flex-start;gap:18px">
-          <div class="avatar av-xl ${p.av}" style="border:3px solid rgba(255,255,255,.2)">${p.ini}</div>
+          <div style="position:relative;cursor:pointer;flex-shrink:0" onclick="document.getElementById('foto-perfil-input').click()" title="Cambiar foto de perfil" onmouseover="this.querySelector('.foto-cam').style.opacity='1'" onmouseout="this.querySelector('.foto-cam').style.opacity='0'">
+            <div class="avatar av-xl ${p.av}" style="border:3px solid rgba(255,255,255,.2);overflow:hidden">
+              ${p.foto ? `<img src="${p.foto}" style="width:100%;height:100%;object-fit:cover;display:block">` : p.ini}
+            </div>
+            <div class="foto-cam" style="position:absolute;inset:0;background:rgba(0,0,0,.45);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;font-size:20px;pointer-events:none">📷</div>
+          </div>
+          <input type="file" id="foto-perfil-input" accept="image/*" style="display:none" onchange="uploadFotoPerfil(${p.id},this)">
           <div>
             <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--sage-l);margin-bottom:4px">${p.icon} ${p.typeLabel}</div>
             <h1 style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:500;line-height:1;margin-bottom:6px">${p.name}</h1>
             <div style="color:rgba(250,246,239,.7);font-size:12px;display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
-              <span>${p.age} años</span>·<span>${p.online ? '💻 Online' : '📍 Presencial'}</span>·<span>📱 ${p.phone}</span>
+              <span>${p.age} años</span>·<span>${p.sexo === 'masculino' ? '♂️ Masculino' : '♀️ Femenino'}</span>·<span>${p.online ? '💻 Online' : '📍 Presencial'}</span>·<span>📱 ${p.phone}</span>
               ${p.consentimiento.firmado
                 ? `·<span style="color:var(--sage-l)">✓ Consentimiento firmado</span>`
                 : `·<span style="color:var(--terra)">⚠️ Sin consentimiento</span>`}
@@ -120,6 +141,31 @@ function renderConsultaTab() {
     if (consultaTab === 'progreso') renderEvolChart();
     if (consultaTab === 'glucosa')  renderGlucChart();
     if (consultaTab === 'embarazo') renderGanChart();
+    if (consultaTab === 'galeria')  renderGaleria();
   }, 60);
+}
+
+async function uploadFotoPerfil(id, input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const fd = new FormData();
+  fd.append('paciente_id', id);
+  fd.append('foto', file);
+  try {
+    const res  = await fetch('api/foto_perfil.php', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.ok) {
+      const p = PATIENTS.find(x => x.id === id);
+      if (p) p.foto = data.url;
+      if (currentPatient?.id === id) currentPatient.foto = data.url;
+      renderConsulta();
+      toast('Foto actualizada ✓');
+    } else {
+      toast(data.error || 'Error al subir foto', '✗');
+    }
+  } catch(e) {
+    toast('No se pudo subir la foto', '✗');
+  }
 }
 

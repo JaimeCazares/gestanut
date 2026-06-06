@@ -33,11 +33,12 @@ CREATE TABLE pacientes (
   id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   usuario_id          INT UNSIGNED NOT NULL,
   nombre              VARCHAR(150) NOT NULL,
-  edad                TINYINT UNSIGNED NOT NULL,
+  edad                TINYINT UNSIGNED NULL,
+  sexo                ENUM('femenino','masculino') NULL DEFAULT NULL,
   whatsapp            VARCHAR(20)  NOT NULL,
   tipo_consulta       ENUM('materna','recomp','peso') NOT NULL,
-  peso_actual         DECIMAL(5,2) NOT NULL COMMENT 'kg',
-  altura              DECIMAL(3,2) NOT NULL COMMENT 'm',
+  peso_actual         DECIMAL(5,2) NULL COMMENT 'kg',
+  altura              DECIMAL(3,2) NULL COMMENT 'm',
   modalidad           ENUM('presencial','online') DEFAULT 'presencial',
   objetivo_principal  TEXT,
   estado              ENUM('nueva','activa','seguimiento','inactiva') DEFAULT 'nueva',
@@ -123,6 +124,8 @@ CREATE TABLE mediciones (
   muslo               DECIMAL(5,2) COMMENT 'cm',
   porcentaje_grasa    DECIMAL(4,1) COMMENT '%',
   imc                 DECIMAL(4,1) COMMENT 'calculado',
+  nota                TEXT         NULL,
+  sem                 TINYINT UNSIGNED NULL COMMENT 'semana gestacional',
   created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
   INDEX idx_fecha (paciente_id, fecha)
@@ -153,6 +156,8 @@ CREATE TABLE recuentos_24h (
   id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   paciente_id         INT UNSIGNED NOT NULL,
   fecha_recuento      DATE NOT NULL,
+  agua                VARCHAR(50)  NULL,
+  nota                TEXT         NULL,
   created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE
 );
@@ -252,6 +257,8 @@ CREATE TABLE planes_nutricionales (
   proteina_g          SMALLINT UNSIGNED,
   carbohidratos_g     SMALLINT UNSIGNED,
   grasas_g            SMALLINT UNSIGNED,
+  fibra_g             TINYINT UNSIGNED DEFAULT NULL,
+  actividad           DECIMAL(5,3) NOT NULL DEFAULT 1.400,
   agua_litros         DECIMAL(3,1),
   descripcion         TEXT,
   activo              BOOLEAN DEFAULT TRUE,
@@ -358,6 +365,51 @@ CREATE TABLE galeria_pacientes (
   created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE
 );
+
+-- ───────────────────────────────────────────────────────────────────
+-- 22. ALIMENTOS  (biblioteca global de alimentos con macros)
+-- ───────────────────────────────────────────────────────────────────
+CREATE TABLE alimentos (
+  id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre              VARCHAR(150) NOT NULL,
+  categoria           VARCHAR(50)  NOT NULL,
+  porcion_g           SMALLINT UNSIGNED NOT NULL DEFAULT 100,
+  porcion_descripcion VARCHAR(80),
+  calorias            SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  proteina_g          DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  carbohidratos_g     DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  grasas_g            DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+  fibra_g             DECIMAL(5,2) NOT NULL DEFAULT 0.00
+);
+
+-- ───────────────────────────────────────────────────────────────────
+-- 23. PREFERENCIAS DE ALIMENTOS  (exclusiones por paciente)
+-- ───────────────────────────────────────────────────────────────────
+CREATE TABLE preferencias_alimentos (
+  id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  paciente_id INT UNSIGNED NOT NULL,
+  alimento_id INT UNSIGNED NOT NULL,
+  excluido    TINYINT(1)   NOT NULL DEFAULT 1,
+  UNIQUE KEY uq_pref (paciente_id, alimento_id),
+  FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE,
+  FOREIGN KEY (alimento_id) REFERENCES alimentos(id) ON DELETE CASCADE
+);
+
+-- ───────────────────────────────────────────────────────────────────
+-- 24. PLAN_ALIMENTOS_SELECCIONADOS  (alimentos asignados a cada comida)
+-- ───────────────────────────────────────────────────────────────────
+CREATE TABLE plan_alimentos_seleccionados (
+  id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  plan_id       INT UNSIGNED NOT NULL,
+  alimento_id   INT UNSIGNED NOT NULL,
+  tiempo_comida ENUM('desayuno','colacion_am','comida','colacion_pm','cena') NOT NULL,
+  porciones     DECIMAL(4,2) NOT NULL DEFAULT 1.00,
+  FOREIGN KEY (plan_id)     REFERENCES planes_nutricionales(id) ON DELETE CASCADE,
+  FOREIGN KEY (alimento_id) REFERENCES alimentos(id) ON DELETE CASCADE
+);
+
+-- Nota: Si actualizas una BD existente, ejecutar api/migrate_plan.php una vez
+-- para agregar las columnas a tablas ya creadas.
 
 -- ═══════════════════════════════════════════════════════════════════
 --  FIN DEL SCRIPT

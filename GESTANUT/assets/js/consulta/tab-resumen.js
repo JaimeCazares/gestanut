@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════
 function tabResumen(p) {
   const imc  = p.weight ? calcIMC(p.weight, p.height) : '—';
-  const tmb  = p.weight ? calcTMB(p.weight, p.height, p.age) : '—';
+  const tmb  = p.weight ? calcTMB(p.weight, p.height, p.age, p.sexo) : '—';
   const agua = p.weight ? (calcWater(p.weight, p.semGestacion || 0) / 1000).toFixed(1) : '—';
   return `<div class="g-21">
     <div>
@@ -13,9 +13,13 @@ function tabResumen(p) {
           ${(p.bio || p.goal) ? `<div style="background:var(--sage-lll);border-left:3px solid var(--sage);padding:12px 16px;border-radius:0 var(--rs) var(--rs) 0;margin-bottom:16px;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--forest);line-height:1.6">"${p.bio || p.goal}"</div>` : ''}
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
             ${[
-              ['Peso', p.weight ? `${p.weight} kg` : '—'], ['Altura', `${p.height} m`],
-              ['IMC', imc], ['TMB', tmb !== '—' ? `${tmb} kcal` : '—'],
-              ['Agua/día', agua !== '—' ? `${agua} L` : '—'], ['Última visita', p.ultimaVisita]
+              ['Peso',        p.weight ? `${p.weight} kg` : '—'],
+              ['Altura',      `${p.height} m`],
+              ['Sexo',        p.sexo === 'masculino' ? '♂ Masculino' : '♀ Femenino'],
+              ['IMC',         imc],
+              ['TMB',         tmb !== '—' ? `${tmb} kcal` : '—'],
+              ['Agua/día',    agua !== '—' ? `${agua} L` : '—'],
+              ['Última visita', p.ultimaVisita],
             ].map(([l, v]) => `<div style="background:var(--cream);padding:11px 12px;border-radius:var(--rs)"><div style="font-size:10px;color:var(--text-m);text-transform:uppercase;letter-spacing:.5px">${l}</div><div style="font-size:14px;font-weight:500;color:var(--forest);margin-top:2px">${v}</div></div>`).join('')}
           </div>
         </div>

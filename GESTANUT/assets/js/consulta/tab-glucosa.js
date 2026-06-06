@@ -12,7 +12,7 @@ function tabGlucosa(p) {
           <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--forest)">Monitoreo glucémico</div>
           <div class="muted-sm">Metas: Ayuno &lt;92 · 1h pp &lt;140 · 2h pp &lt;120 mg/dL</div>
         </div>
-        <button class="btn btn-terra btn-sm" onclick="toast('Registrando glucosa ✓')">+ Registro de hoy</button>
+        <button class="btn btn-terra btn-sm" onclick="openGlucosaModal()">+ Registro de hoy</button>
       </div>
     </div>
     <div class="g2 mb-sm">

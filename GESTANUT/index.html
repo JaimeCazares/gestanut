@@ -25,6 +25,7 @@
     <button class="nav-btn" data-view="pacientes"><span class="nav-icon">👩</span><span>Pacientes</span><span class="nav-badge">12</span></button>
     <button class="nav-btn" data-view="agenda"><span class="nav-icon">📅</span><span>Agenda</span></button>
     <button class="nav-btn" data-view="planes"><span class="nav-icon">🥗</span><span>Planes</span></button>
+    <button class="nav-btn" data-view="pendientes"><span class="nav-icon">📌</span><span>Pendientes</span></button>
     <div class="nav-section">Clínico</div>
     <button class="nav-btn" data-view="calculadoras"><span class="nav-icon">🧮</span><span>Calculadoras</span></button>
     <button class="nav-btn" data-view="consentimientos"><span class="nav-icon">📝</span><span>Consentimientos</span></button>
@@ -53,6 +54,7 @@
       </div>
     </div>
     <div class="tb-right">
+      <button type="button" class="btn-icon btn-menu" id="sidebar-toggle" title="Menú">☰</button>
       <button class="btn-icon btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema"><span id="theme-icon">🌙</span></button>
       <button class="btn btn-outline btn-sm" onclick="openModal('appt-modal')">+ Cita</button>
       <button class="btn btn-primary btn-sm" onclick="openModal('newpx-modal')">+ Paciente</button>
@@ -63,7 +65,8 @@
 
 <div id="modal-root"></div>
 <div id="toast-root"></div>
-<button class="fab" onclick="openModal('appt-modal')" title="Nueva cita">+</button>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<button type="button" class="fab" onclick="openModal('appt-modal')" title="Nueva cita">+</button>
 
 <!-- DATA -->
 <script src="assets/js/data/patients.js"></script>
@@ -92,6 +95,7 @@
 <script src="assets/js/views/pacientes.js"></script>
 <script src="assets/js/views/agenda.js"></script>
 <script src="assets/js/views/planes.js"></script>
+<script src="assets/js/views/pendientes.js"></script>
 <script src="assets/js/views/calculadoras.js"></script>
 <script src="assets/js/views/consentimientos.js"></script>
 <script src="assets/js/views/finanzas.js"></script>

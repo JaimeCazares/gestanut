@@ -41,7 +41,12 @@ VIEWS.calculadoras = () => `<div class="view active">
         </div>
         <div class="field-row">
           <div class="field"><label class="field-label">Edad</label><input class="input" type="number" id="kc-age" value="30" oninput="recalcKcal()"></div>
-          <div class="field"><label class="field-label">Actividad</label><select class="select" id="kc-act" onchange="recalcKcal()">
+          <div class="field"><label class="field-label">Sexo</label><select class="select" id="kc-sex" onchange="recalcKcal()">
+            <option value="femenino" selected>Femenino</option><option value="masculino">Masculino</option>
+          </select></div>
+        </div>
+        <div class="field-row">
+          <div class="field" style="flex:1"><label class="field-label">Actividad</label><select class="select" id="kc-act" onchange="recalcKcal()">
             <option value="1.2">Sedentaria</option><option value="1.375">Ligera</option>
             <option value="1.55" selected>Moderada</option><option value="1.725">Activa</option><option value="1.9">Muy activa</option>
           </select></div>
@@ -69,6 +74,10 @@ VIEWS.calculadoras = () => `<div class="view active">
       <div class="panel-body" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center">
         <div>
           <div class="field"><label class="field-label">Peso (kg)</label><input class="input" type="number" id="aw-w" value="65" oninput="recalcWater()"></div>
+          <div class="field"><label class="field-label">Actividad física</label><select class="select" id="aw-act" onchange="recalcWater()">
+            <option value="0">Sedentaria</option><option value="350">Ligera (30 min/día)</option>
+            <option value="700">Moderada (1 hr/día)</option><option value="1000">Intensa (+1 hr/día)</option>
+          </select></div>
           <div class="field"><label class="field-label">Embarazo</label><select class="select" id="aw-preg" onchange="recalcWater()">
             <option value="0">No</option><option value="13">1er trim.</option><option value="20">2do trim.</option><option value="32">3er trim.</option>
           </select></div>
@@ -111,9 +120,10 @@ function recalcKcal() {
   const w    = parseFloat($('#kc-w')?.value)   || 65;
   const h    = parseFloat($('#kc-h')?.value)   || 1.65;
   const a    = parseInt($('#kc-age')?.value)   || 30;
+  const sex  = $('#kc-sex')?.value             || 'femenino';
   const act  = parseFloat($('#kc-act')?.value) || 1.55;
   const goal = parseFloat($('#kc-goal')?.value) || 1;
-  const tmb  = calcTMB(w, h, a);
+  const tmb  = calcTMB(w, h, a, sex);
   const tot  = Math.round(tmb * act * goal);
   if ($('#kc-tot')) $('#kc-tot').textContent = tot.toLocaleString();
   if ($('#kc-tmb')) $('#kc-tmb').textContent = `TMB: ${tmb.toLocaleString()} kcal · GET: ${Math.round(tmb * act).toLocaleString()} kcal`;
@@ -125,9 +135,10 @@ function recalcKcal() {
 }
 
 function recalcWater() {
-  const w   = parseFloat($('#aw-w')?.value)   || 65;
-  const sem = parseInt($('#aw-preg')?.value)  || 0;
-  const ml  = calcWater(w, sem);
+  const w   = parseFloat($('#aw-w')?.value)    || 65;
+  const act = parseInt($('#aw-act')?.value)    || 0;
+  const sem = parseInt($('#aw-preg')?.value)   || 0;
+  const ml  = calcWater(w, sem, act);
   if ($('#aw-r')) $('#aw-r').textContent = (ml / 1000).toFixed(1) + ' L';
   if ($('#aw-l')) $('#aw-l').textContent = `≈ ${Math.round(ml / 250)} vasos de 250ml`;
 }

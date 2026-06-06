@@ -6,16 +6,18 @@ function injectModals() {
   <!-- NUEVA PACIENTE -->
   <div class="modal-overlay" id="newpx-modal">
     <div class="modal" style="max-width:640px">
-      <div class="modal-head"><div class="modal-title">Nueva <em>paciente</em></div><button class="modal-close" onclick="closeModal('newpx-modal')">✕</button></div>
+      <div class="modal-head"><div class="modal-title">Nuevo <em>paciente</em></div><button class="modal-close" onclick="closeModal('newpx-modal')">✕</button></div>
       <div class="modal-body">
-        <div class="field-row"><div class="field"><label class="field-label">Nombre completo*</label><input id="np-nombre" class="input" placeholder="Ej. Laura García Méndez"></div><div class="field"><label class="field-label">Edad*</label><input id="np-edad" class="input" type="number" placeholder="28"></div></div>
+        <div class="field"><label class="field-label">Nombre completo*</label><input id="np-nombre" class="input" placeholder="Ej. Laura García Méndez"></div>
         <div class="field-row"><div class="field"><label class="field-label">WhatsApp*</label><input id="np-phone" class="input" placeholder="667 123 4567"></div><div class="field"><label class="field-label">Tipo de consulta*</label><select id="np-tipo" class="select"><option>Materno-infantil</option><option>Recomposición</option><option>Control de peso</option></select></div></div>
-        <div class="field-row"><div class="field"><label class="field-label">Peso (kg)*</label><input id="np-peso" class="input" type="number" placeholder="68"></div><div class="field"><label class="field-label">Altura (m)*</label><input id="np-altura" class="input" type="number" step="0.01" placeholder="1.65"></div></div>
         <div class="field"><label class="field-label">Modalidad</label><select id="np-modalidad" class="select"><option>Presencial</option><option>Online</option></select></div>
-        <div class="field"><label class="field-label">Objetivo principal</label><input id="np-objetivo" class="input" placeholder="Ej. Perder 8 kg antes de julio"></div>
-        <div style="background:var(--terra-l);border-radius:var(--rs);padding:12px 16px;margin-top:4px;border-left:3px solid var(--terra)">
+        <div style="background:var(--sage-lll);border-radius:var(--rs);padding:12px 16px;margin-top:4px;border-left:3px solid var(--sage)">
+          <div style="font-size:12px;font-weight:600;color:var(--forest);margin-bottom:4px">📋 Datos clínicos en primera consulta</div>
+          <div style="font-size:11px;color:var(--text-m)">Peso, talla, medidas, objetivo y demás datos clínicos se registran al abrir la primera consulta del expediente.</div>
+        </div>
+        <div style="background:var(--terra-l);border-radius:var(--rs);padding:12px 16px;margin-top:8px;border-left:3px solid var(--terra)">
           <div style="font-size:12px;font-weight:600;color:var(--terra-d);margin-bottom:4px">⚠️ Consentimiento informado</div>
-          <div style="font-size:11px;color:var(--text-m)">Se generará automáticamente al crear el expediente. Recuerda obtener la firma de la paciente en la primera consulta.</div>
+          <div style="font-size:11px;color:var(--text-m)">Se generará automáticamente al crear el expediente. Recuerda obtener la firma en la primera consulta.</div>
         </div>
       </div>
       <div class="modal-foot">
@@ -30,16 +32,16 @@ function injectModals() {
     <div class="modal" style="max-width:560px">
       <div class="modal-head"><div class="modal-title">Agendar <em>cita</em></div><button class="modal-close" onclick="closeModal('appt-modal')">✕</button></div>
       <div class="modal-body">
-        <div class="field"><label class="field-label">Paciente</label><select class="select">${PATIENTS.map(p => `<option>${p.name}</option>`).join('')}</select></div>
-        <div class="field-row"><div class="field"><label class="field-label">Fecha</label><input class="input" type="date" value="${new Date().toISOString().split('T')[0]}"></div><div class="field"><label class="field-label">Hora</label><select class="select">${['8:00','8:30','9:00','9:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','14:00','15:00','16:00','17:00'].map(t => `<option>${t}</option>`).join('')}</select></div></div>
-        <div class="field"><label class="field-label">Modalidad</label><div style="display:flex;gap:12px"><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="mod" checked> Presencial</label><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="mod"> Online</label></div></div>
-        <div class="field"><label class="field-label">Tipo de consulta</label><select class="select"><option>Control / Seguimiento</option><option>Primera consulta</option><option>Urgencia</option></select></div>
-        <div class="field"><label class="field-label">Notas previas</label><textarea class="textarea" style="min-height:60px" placeholder="Ej. Traer estudios de laboratorio recientes..."></textarea></div>
+        <div class="field"><label class="field-label">Paciente</label><select id="appt-paciente" class="select">${PATIENTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select></div>
+        <div class="field-row"><div class="field"><label class="field-label">Fecha</label><input id="appt-fecha" class="input" type="date" value="${new Date().toISOString().split('T')[0]}"></div><div class="field"><label class="field-label">Hora</label><select id="appt-hora" class="select">${['8:00','8:30','9:00','9:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'].map(t => `<option>${t}</option>`).join('')}</select></div></div>
+        <div class="field"><label class="field-label">Modalidad</label><div style="display:flex;gap:12px"><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="appt-mod" value="presencial" checked> Presencial</label><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="appt-mod" value="online"> Online</label></div></div>
+        <div class="field"><label class="field-label">Tipo de consulta</label><select id="appt-tipo" class="select"><option>Control / Seguimiento</option><option>Primera consulta</option><option>Urgencia</option></select></div>
+        <div class="field"><label class="field-label">Notas previas</label><textarea id="appt-notas" class="textarea" style="min-height:60px" placeholder="Ej. Traer estudios de laboratorio recientes..."></textarea></div>
         <div style="background:var(--sage-lll);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--text-m)">💬 Se enviará recordatorio por WhatsApp 24h antes</div>
       </div>
       <div class="modal-foot">
         <button class="btn btn-outline" onclick="closeModal('appt-modal')">Cancelar</button>
-        <button class="btn btn-primary" onclick="closeModal('appt-modal');toast('Cita agendada ✓ · Recordatorio programado')">Confirmar cita</button>
+        <button id="appt-submit" class="btn btn-primary" onclick="guardarCita()">Confirmar cita</button>
       </div>
     </div>
   </div>
@@ -215,7 +217,7 @@ function injectModals() {
     </div>
   </div>
 
-  <!-- PLAN NUTRICIONAL -->
+  <!-- PLAN NUTRICIONAL (solo descripción) -->
   <div class="modal-overlay" id="plan-edit-modal">
     <div class="modal" style="max-width:560px">
       <div class="modal-head"><div class="modal-title">Editar <em>plan nutricional</em></div><button class="modal-close" onclick="closeModal('plan-edit-modal')">✕</button></div>
@@ -224,7 +226,29 @@ function injectModals() {
       </div>
       <div class="modal-foot">
         <button class="btn btn-outline" onclick="closeModal('plan-edit-modal')">Cancelar</button>
-        <button id="plan-edit-submit" class="btn btn-primary" onclick="guardarPlan()">Guardar plan</button>
+        <button id="plan-edit-submit" class="btn btn-primary" onclick="guardarPlanDesc()">Guardar descripción</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTRO DE GLUCOSA -->
+  <div class="modal-overlay" id="glucosa-modal">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-head"><div class="modal-title">Registrar <em>glucosa</em></div><button class="modal-close" onclick="closeModal('glucosa-modal')">✕</button></div>
+      <div class="modal-body">
+        <div class="field"><label class="field-label">Fecha*</label><input id="gluc-fecha" class="input" type="date"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="field"><label class="field-label">Ayuno (mg/dL)</label><input id="gluc-ayuno" class="input" type="number" placeholder="92"></div>
+          <div class="field"><label class="field-label">Pre-comida</label><input id="gluc-pre" class="input" type="number" placeholder="100"></div>
+          <div class="field"><label class="field-label">Post-comida</label><input id="gluc-post" class="input" type="number" placeholder="140"></div>
+          <div class="field"><label class="field-label">Pre-cena</label><input id="gluc-prec" class="input" type="number" placeholder="100"></div>
+          <div class="field"><label class="field-label">Post-cena</label><input id="gluc-postc" class="input" type="number" placeholder="120"></div>
+        </div>
+        <div class="field" style="margin-top:4px"><label class="field-label">Nota</label><textarea id="gluc-nota" class="textarea" style="min-height:55px" placeholder="Observaciones del día..."></textarea></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('glucosa-modal')">Cancelar</button>
+        <button id="gluc-submit" class="btn btn-primary" onclick="guardarGlucosa()">Guardar</button>
       </div>
     </div>
   </div>
@@ -247,6 +271,29 @@ function injectModals() {
       <div class="modal-foot">
         <button class="btn btn-outline" onclick="closeModal('recuento-modal')">Cancelar</button>
         <button id="rec-submit" class="btn btn-primary" onclick="guardarRecuento()">Guardar recuento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPLEMENTO -->
+  <div class="modal-overlay" id="suple-modal">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-head"><div class="modal-title">Agregar <em>suplemento</em></div><button class="modal-close" onclick="closeModal('suple-modal')">✕</button></div>
+      <div class="modal-body">
+        <div class="field"><label class="field-label">Suplemento*</label><input id="suple-nombre" class="input" placeholder="Ej. Omega 3, Vitamina D, Hierro..."></div>
+        <div class="field-row">
+          <div class="field"><label class="field-label">Dosis</label><input id="suple-dosis" class="input" placeholder="Ej. 1g, 600mcg, 2000UI"></div>
+          <div class="field"><label class="field-label">Momento</label>
+            <select id="suple-frecuencia" class="select">
+              <option>AM</option><option>PM</option><option>con comida</option><option>con cena</option><option>diario</option><option>en ayunas</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label class="field-label">Razón / indicación (opcional)</label><input id="suple-razon" class="input" placeholder="Ej. Deficiencia de vitamina D"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('suple-modal')">Cancelar</button>
+        <button id="suple-submit" class="btn btn-primary" onclick="guardarSuple()">Guardar</button>
       </div>
     </div>
   </div>
@@ -299,9 +346,26 @@ function injectModals() {
   </div>`;
 }
 
+function syncApptTipo() {
+  const sel     = $('#appt-paciente');
+  const tipoSel = $('#appt-tipo');
+  if (!sel || !tipoSel) return;
+  const p = PATIENTS.find(p => p.id === parseInt(sel.value));
+  tipoSel.value = (p && p.ultimaVisita === '—') ? 'Primera consulta' : 'Control / Seguimiento';
+}
+
 function openModal(id) {
   const m = $('#' + id);
   if (m) m.classList.add('open');
+  if (id === 'appt-modal') {
+    const sel = $('#appt-paciente');
+    if (sel) {
+      sel.innerHTML = PATIENTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      if (currentPatient) sel.value = currentPatient.id;
+      sel.onchange = syncApptTipo;
+      syncApptTipo();
+    }
+  }
   if (id === 'receipt-modal' && currentReceipt) {
     $('#rcpt-concepto').textContent = currentReceipt.concepto;
     $('#rcpt-total').textContent = fmt$(currentReceipt.monto);
@@ -482,14 +546,14 @@ async function guardarMedicion() {
   }
 }
 
-// ─── Plan nutricional ──────────────────────────────────
+// ─── Plan nutricional (descripción corta) ─────────────
 function openPlanModal() {
   const el = $('#plan-desc');
   if (el) el.value = currentPatient?.plan || '';
   openModal('plan-edit-modal');
 }
 
-async function guardarPlan() {
+async function guardarPlanDesc() {
   const desc = ($('#plan-desc')||{}).value?.trim();
   if (!desc) { toast('Escribe la descripción del plan'); return; }
   const btn = $('#plan-edit-submit');
@@ -503,12 +567,12 @@ async function guardarPlan() {
     if (!res.ok) throw new Error();
     currentPatient.plan = desc;
     closeModal('plan-edit-modal');
-    toast('Plan guardado ✓');
+    toast('Descripción del plan guardada ✓');
     setCTab('plan');
   } catch (e) {
     toast('No se pudo guardar. Revisa la conexión.');
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Guardar plan'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Guardar descripción'; }
   }
 }
 
@@ -632,11 +696,27 @@ document.addEventListener('keydown', e => {
   $$('.modal-overlay.open').forEach(m => m.classList.remove('open'));
 });
 
-function quickWA(id) {
+async function quickWA(id) {
   const p = PATIENTS.find(x => x.id === id);
   if (!p) return;
-  const msg = `Hola ${p.name.split(' ')[0]}! 🌿 Soy Diana, tu nutrióloga. Te confirmo tu próxima cita. ¿Tienes alguna duda antes de tu consulta?`;
-  window.open(waLink(p.phone, msg), '_blank');
+
+  const DIAS  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  let fechaMsg = '';
+  try {
+    const res  = await fetch(`api/citas.php?paciente_id=${id}`);
+    const cita = res.ok ? await res.json() : null;
+    if (cita && cita.fecha) {
+      const d   = new Date(cita.fecha + 'T00:00:00');
+      const [hh, mm] = cita.hora.split(':');
+      fechaMsg = `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]} a las ${parseInt(hh)}:${mm}`;
+    }
+  } catch (e) {}
+
+  const detalle = fechaMsg ? `el *${fechaMsg}*` : `tu próxima cita`;
+  const msg = `Hola ${p.name.split(' ')[0]}! Soy Diana, tu nutrióloga. Te confirmo ${detalle}. ¿Tienes alguna duda antes de tu consulta?`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 function openSendPlan(id) {
@@ -684,17 +764,111 @@ async function guardarMovimiento() {
   }
 }
 
+// ─── Glucosa ───────────────────────────────────────────
+function openGlucosaModal() {
+  const input = $('#gluc-fecha');
+  if (input) input.value = new Date().toISOString().split('T')[0];
+  ['gluc-ayuno','gluc-pre','gluc-post','gluc-prec','gluc-postc','gluc-nota'].forEach(id => {
+    const el = $('#' + id); if (el) el.value = '';
+  });
+  openModal('glucosa-modal');
+}
+
+async function guardarGlucosa() {
+  const fechaRaw = ($('#gluc-fecha') || {}).value;
+  if (!fechaRaw) { toast('Selecciona una fecha'); return; }
+  const btn = $('#gluc-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+  try {
+    const res = await fetch('api/glucosa.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        paciente_id: currentPatient.id,
+        fecha:       fechaRaw,
+        ayuno:       ($('#gluc-ayuno') ||{}).value || null,
+        pre_comida:  ($('#gluc-pre')   ||{}).value || null,
+        post_comida: ($('#gluc-post')  ||{}).value || null,
+        pre_cena:    ($('#gluc-prec')  ||{}).value || null,
+        post_cena:   ($('#gluc-postc') ||{}).value || null,
+        nota:        ($('#gluc-nota')  ||{}).value?.trim() || '',
+      }),
+    });
+    if (!res.ok) throw new Error();
+    // Recargar datos de glucosa
+    const res2 = await fetch(`api/paciente.php?id=${currentPatient.id}`);
+    if (res2.ok) { const d = await res2.json(); if (d.glucosaData) currentPatient.glucosaData = d.glucosaData; }
+    closeModal('glucosa-modal');
+    toast('Registro de glucosa guardado ✓');
+    setCTab('glucosa');
+  } catch (e) {
+    toast('No se pudo guardar. Revisa la conexión.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Guardar'; }
+  }
+}
+
+async function guardarCita() {
+  const pacienteId = ($('#appt-paciente') || {}).value;
+  const fecha      = ($('#appt-fecha')    || {}).value;
+  const hora       = ($('#appt-hora')     || {}).value;
+  const tipo       = ($('#appt-tipo')     || {}).value;
+  const notas      = ($('#appt-notas')    || {}).value?.trim();
+  const modalidad  = document.querySelector('input[name="appt-mod"]:checked')?.value || 'presencial';
+
+  if (!pacienteId || !fecha || !hora) {
+    toast('⚠️ Selecciona paciente, fecha y hora');
+    return;
+  }
+
+  const btn = $('#appt-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+  try {
+    const res = await fetch('api/citas.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paciente_id: pacienteId, fecha, hora: hora + ':00', modalidad, tipo_consulta: tipo, notas }),
+    });
+    if (!res.ok) throw new Error('Error del servidor');
+    const nueva = await res.json();
+    // Actualizar proxima cita en memoria
+    const DIAS_S  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const MESES_S = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const dCita = new Date(nueva.fecha + 'T00:00:00');
+    const [hh, mm] = nueva.hora.split(':');
+    const proximaStr = `${DIAS_S[dCita.getDay()]} ${dCita.getDate()} ${MESES_S[dCita.getMonth()]} · ${parseInt(hh)}:${mm}`;
+    const pxObj = PATIENTS.find(p => p.id === parseInt(pacienteId));
+    if (pxObj) pxObj.proxima = proximaStr;
+    if (currentPatient?.id === parseInt(pacienteId)) {
+      currentPatient.proxima = proximaStr;
+      currentPatient.proximaCita = nueva;
+      renderConsulta();
+    }
+    closeModal('appt-modal');
+    toast('Cita agendada ✓');
+    if (typeof gcalCreateEvent === 'function') await gcalCreateEvent(nueva);
+    if (currentView === 'agenda') {
+      if (typeof gcalIsConnected === 'function' && gcalIsConnected()) {
+        loadAgendaGcalEvents();
+      } else {
+        loadAgendaCitas();
+      }
+    }
+  } catch (e) {
+    toast('⚠️ No se pudo guardar. Revisa la conexión a la BD.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Confirmar cita'; }
+  }
+}
+
 async function crearPaciente() {
   const nombre   = ($('#np-nombre')   || {}).value?.trim();
-  const edad     = ($('#np-edad')     || {}).value;
   const phone    = ($('#np-phone')    || {}).value?.trim();
   const tipo     = ($('#np-tipo')     || {}).value;
-  const peso     = ($('#np-peso')     || {}).value;
-  const altura   = ($('#np-altura')   || {}).value;
   const modalidad= ($('#np-modalidad')|| {}).value;
-  const objetivo = ($('#np-objetivo') || {}).value?.trim();
 
-  if (!nombre || !edad || !phone || !peso || !altura) {
+  if (!nombre || !phone) {
     toast('⚠️ Completa todos los campos obligatorios');
     return;
   }
@@ -706,15 +880,15 @@ async function crearPaciente() {
     const res = await fetch('api/pacientes.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, edad, whatsapp: phone, tipo_consulta: tipo, peso, altura, modalidad, objetivo }),
+      body: JSON.stringify({ nombre, whatsapp: phone, tipo_consulta: tipo, modalidad }),
     });
     if (!res.ok) throw new Error('Error del servidor');
     const nueva = await res.json();
     PATIENTS.unshift(buildPatient(nueva));
     closeModal('newpx-modal');
-    toast('Paciente registrada ✓ · Consentimiento generado');
+    toast('Paciente registrado/a ✓ · Consentimiento generado');
     // Limpiar campos
-    ['np-nombre','np-edad','np-phone','np-peso','np-altura','np-objetivo'].forEach(id => {
+    ['np-nombre','np-edad','np-phone'].forEach(id => {
       const el = $('#' + id); if (el) el.value = '';
     });
     if (currentView === 'pacientes') renderGrid();
@@ -724,4 +898,17 @@ async function crearPaciente() {
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Crear expediente'; }
   }
+}
+
+function setNpSexo(val) {
+  const fLbl = document.getElementById('lbl-sexo-f');
+  const mLbl = document.getElementById('lbl-sexo-m');
+  fLbl.querySelector('input').checked = val === 'femenino';
+  mLbl.querySelector('input').checked = val === 'masculino';
+  Object.assign(fLbl.style, val === 'femenino'
+    ? { background: 'var(--terra-l)', color: 'var(--terra-d)', fontWeight: '600' }
+    : { background: 'transparent', color: 'var(--text-m)', fontWeight: '400' });
+  Object.assign(mLbl.style, val === 'masculino'
+    ? { background: 'var(--sage-ll)', color: 'var(--sage)', fontWeight: '600' }
+    : { background: 'transparent', color: 'var(--text-m)', fontWeight: '400' });
 }
